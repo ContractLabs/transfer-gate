@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
 import {Currency} from "src/libraries/LibCurrency.sol";
 import {LibRoles as Roles} from "src/libraries/LibRoles.sol";
@@ -37,26 +37,24 @@ contract TransferGate is Initializable, UniqueChecker, AccessControlUpgradeable,
     emit RecoverToken(_msgSender(), Currency.unwrap(currency_), amount_);
   }
 
-  function batchTransfer(TransferDetail calldata transferDetail_)
-    external
-    onlyRole(Roles.OPERATOR_ROLE)
-  {
+  function batchTransfer(TransferDetail calldata transferDetail_) external onlyRole(Roles.OPERATOR_ROLE) {
     _setUsed(uint256(transferDetail_.key));
     _lengthValidate(transferDetail_.recipients, transferDetail_.amounts);
     _batchTransfer(transferDetail_.currency, transferDetail_.recipients, transferDetail_.amounts);
 
-    emit BatchTransfer(_msgSender(), transferDetail_.recipients, transferDetail_.amounts);
+    emit BatchTransfer(_msgSender(), transferDetail_);
   }
 
-  function _lengthValidate(address[] calldata recipients_, uint256[] calldata amounts_) internal {
-    if (recipients_.length() != amounts_.length()) 
+  function _lengthValidate(address[] calldata recipients_, uint256[] calldata amounts_) internal pure {
+    if (recipients_.length != amounts_.length) {
       revert LengthMismatch();
+    }
   }
 
-  function _batchTransfer(Currency currency_, address[] recipients_, uint256[] amounts_) internal {
+  function _batchTransfer(Currency currency_, address[] calldata recipients_, uint256[] calldata amounts_) internal {
     uint256 amount;
     address recipient;
-    for (uint256 i; i < recipients_.length(); ) {
+    for (uint256 i; i < recipients_.length;) {
       amount = amounts_[i];
       recipient = recipients_[i];
       currency_.transfer(recipient, amount);
