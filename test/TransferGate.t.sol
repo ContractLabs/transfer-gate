@@ -59,7 +59,15 @@ contract TransferGateTest is Test {
 
     vm.prank(operator, operator);
     vm.expectEmit(address(transferGate));
-    emit TransferGate.BatchTransfer(operator, detail);
+    emit TransferGate.BatchTransfer(operator, address(token), detail.key, detail.recipients, detail.amounts);
+    transferGate.batchTransfer(detail);
+  }
+
+  function testConcrete_batchTransfer_largeUser() public {
+    TransferGate.TransferDetail memory detail = _setUpBatchUser();
+    vm.prank(operator, operator);
+    vm.expectEmit(address(transferGate));
+    emit TransferGate.BatchTransfer(operator, address(token), detail.key, detail.recipients, detail.amounts);
     transferGate.batchTransfer(detail);
   }
 
@@ -106,7 +114,7 @@ contract TransferGateTest is Test {
 
     vm.prank(operator, operator);
     vm.expectRevert(abi.encodeWithSelector(LibCurrency.TransferZeroAmount.selector, Currency.wrap(address(token))));
-    transferGate.batchTransfer(detail); 
+    transferGate.batchTransfer(detail);
   }
 
   function testConcrete_recoverToken() public {
@@ -128,5 +136,24 @@ contract TransferGateTest is Test {
     address logic = address(new TransferGate());
     transferGate = TransferGate(payable(new ERC1967Proxy(logic, abi.encodeCall(TransferGate.initialize, (admin)))));
     vm.stopPrank();
+  }
+
+  function _setUpBatchUser() internal noGasMetering returns (TransferGate.TransferDetail memory detail) {
+    address[] memory user = new address[](1000);
+    uint256[] memory amount = new uint256[](1000);
+    uint256 sum;
+    for (uint256 i; i < 1000; ++i) {
+      user[i] = makeAddr(string.concat("user-", vm.toString(i)));
+      amount[i] = (i + 1) * 2.5 ether;
+      sum += (i + 1) * 2.5 ether;
+    }
+
+    token.mint(address(transferGate), sum);
+    detail = TransferGate.TransferDetail({
+      key: bytes32(uint256(1)),
+      currency: Currency.wrap(address(token)),
+      amounts: amount,
+      recipients: user
+    });
   }
 }

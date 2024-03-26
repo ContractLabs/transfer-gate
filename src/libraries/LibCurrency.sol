@@ -50,6 +50,12 @@ library LibCurrency {
    */
   error InvalidReceiveFrom(address receiveFrom);
 
+  /**
+   * @dev Error thrown when attempting to transfer from native token.
+   * @param currency The currency for which the transfer is attempted.
+   */
+  error TransferFromNative(Currency currency);
+
   using SafeERC20 for IERC20Metadata;
   using LibNativeTransfer for address;
 
@@ -114,6 +120,22 @@ library LibCurrency {
       to.transfer(amount, gasleft());
     } else {
       IERC20Metadata(Currency.unwrap(currency)).safeTransfer(to, amount);
+    }
+  }
+
+  /**
+   * @dev Transfers a given amount of a currency from specified address to a specified address.
+   * @param currency The currency to transfer.
+   * @param from The address from which the transfer is made.
+   * @param to The address to which the transfer is made.
+   * @param amount The amount to transfer.
+   */
+  function transferFrom(Currency currency, address from, address to, uint256 amount) internal {
+    if (amount == 0) revert TransferZeroAmount(currency);
+    if (isNative(currency)) {
+      revert TransferFromNative(currency);
+    } else {
+      IERC20Metadata(Currency.unwrap(currency)).transferFrom(from, to, amount);
     }
   }
 
