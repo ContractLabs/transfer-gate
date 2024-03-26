@@ -9,4 +9,4 @@
 	url = https://github.com/Openzeppelin/openzeppelin-contracts-upgradeable
 [submodule "lib/minimal-deployment-kit"]
 	path = lib/minimal-deployment-kit
-	url = https://github.com/tasibii/minimal-deployment-kit
+	url = https://github.com/cgccld/minimal-deployment-kit
