@@ -32,9 +32,9 @@ contract TransferGateTest is Test {
     vm.stopPrank();
 
     token.mint(operator, 100 ether);
+    token.mint(address(transferGate), 100 ether);
     vm.startPrank(operator, operator);
     token.approve(address(transferGate), 100 ether);
-    token.transfer(address(transferGate), 100 ether);
     vm.stopPrank();
   }
 
@@ -148,7 +148,9 @@ contract TransferGateTest is Test {
       sum += (i + 1) * 2.5 ether;
     }
 
-    token.mint(address(transferGate), sum);
+    token.mint(operator, sum);
+    vm.prank(operator, operator);
+    token.approve(address(transferGate), sum);
     detail = TransferGate.TransferDetail({
       key: bytes32(uint256(1)),
       currency: Currency.wrap(address(token)),
